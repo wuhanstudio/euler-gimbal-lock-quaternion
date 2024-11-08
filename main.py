@@ -14,7 +14,8 @@ from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-from rotate import rotate_x, rotate_y, rotate_vertices
+import numpy as np
+from rotate import rotate_x, rotate_y, rotate_z, rotate_vertices
 
 # IMPORT OBJECT LOADER
 from objloader import *
@@ -62,10 +63,14 @@ def main():
 
     glTranslatef(0.0,0.0, -5)
 
-    rx, ry = (0, 0)
     tx, ty = (0, 0)
     zpos = 5
     rotate = move = False
+
+    # Initial rotation angles
+    angle_x = 0
+    angle_y = 0
+    angle_z = 0
 
     while True:
         for event in pygame.event.get():
@@ -89,7 +94,27 @@ def main():
                 if move:
                     tx += i
                     ty -= j
+
             impl.process_event(event)
+
+        # Capture key presses for rotation
+        keys = pygame.key.get_pressed()
+        if keys[K_w]:  # Rotate around Z-axis counterclockwise
+            angle_x += 5
+        if keys[K_s]:  # Rotate around Z-axis clockwise
+            angle_x -= 5
+        if keys[K_a]:  # Rotate around X-axis counterclockwise
+            angle_z -= 5
+        if keys[K_d]:  # Rotate around X-axis clockwise
+            angle_z += 5
+        if keys[K_q]:  # Rotate around Y-axis counterclockwise
+            angle_y -= 5
+        if keys[K_e]:  # Rotate around Y-axis clockwise
+            angle_y += 5
+
+        # Trigger Gimbal Lock by rotating 90 degrees around X-axis
+        if angle_z >= 90:
+            angle_z = 90  # Freeze at 90 degrees to simulate Gimbal Lock
 
         impl.process_inputs()
 
@@ -126,24 +151,25 @@ def main():
         glRotatef(1, 3, 1, 1)
         impl.render(imgui.get_draw_data())
 
-        # Cube()
-
         # RENDER OBJECT
         glTranslate(tx/20., ty/20., - zpos)
 
         # glRotate(rx, 0, 1, 0)
         # glRotate(ry, 1, 0, 0)
 
-        # Rotate the vertices
-        rotation_matrix = rotate_x(rx)
-        obj.vertices = rotate_vertices(obj.vertices, rotation_matrix)
+        # Create rotation matrices
+        rotation_matrix_x = rotate_x(angle_x)
+        rotation_matrix_y = rotate_y(angle_y)
+        rotation_matrix_z = rotate_z(angle_z)
 
-        # Rotate the vertices
-        rotation_matrix = rotate_y(ry)
-        obj.vertices = rotate_vertices(obj.vertices, rotation_matrix)
+        # Combine the rotation matrices (order matters)
+        combined_rotation_matrix = np.dot(rotation_matrix_z, np.dot(rotation_matrix_y, rotation_matrix_x))
 
-        rx = ry = 0
+        # Apply the combined rotation to the vertices
+        obj.vertices = rotate_vertices(obj.vertices, combined_rotation_matrix)
         
+        angle_x = angle_y = angle_z = 0
+
         obj.update()
         glCallList(obj.gl_list)
 
@@ -151,7 +177,6 @@ def main():
 
         pygame.time.wait(10)
         pygame.display.flip()
-
 
 if __name__ == "__main__":
     main()
