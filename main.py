@@ -89,8 +89,8 @@ def main():
             elif event.type == MOUSEMOTION:
                 i, j = event.rel
                 if rotate:
-                    rx += j
-                    ry += i
+                    angle_x += j
+                    angle_y += i
                 if move:
                     tx += i
                     ty -= j
