@@ -3,56 +3,28 @@
 
 from __future__ import absolute_import
 from imgui.integrations.pygame import PygameRenderer
-import OpenGL.GL as gl
+
+import sys
 import imgui
 import pygame
-import sys
 
-from pygame.locals import *
-
-from OpenGL.GL import *
-from OpenGL.GLU import *
-
-import sys, pygame
 from pygame.locals import *
 from pygame.constants import *
+
 from OpenGL.GL import *
 from OpenGL.GLU import *
+
+from rotate import rotate_x, rotate_y, rotate_vertices
 
 # IMPORT OBJECT LOADER
 from objloader import *
 
-verticies = (
-    (1, -1, -1),
-    (1, 1, -1),
-    (-1, 1, -1),
-    (-1, -1, -1),
-    (1, -1, 1),
-    (1, 1, 1),
-    (-1, -1, 1),
-    (-1, 1, 1)
-    )
-
-edges = (
-    (0,1),
-    (0,3),
-    (0,4),
-    (2,1),
-    (2,3),
-    (2,7),
-    (6,3),
-    (6,4),
-    (6,7),
-    (5,1),
-    (5,4),
-    (5,7)
-    )
-
-def Cube():
-    glBegin(GL_LINES)
-    for edge in edges:
-        for vertex in edge:
-            glVertex3fv(verticies[vertex])
+# Function to draw the 3D object
+def draw_object(vertices, faces):
+    glBegin(GL_TRIANGLES)
+    for face in faces:
+        for vertex in face:
+            glVertex3fv(vertices[vertex])
     glEnd()
 
 def main():
@@ -90,8 +62,8 @@ def main():
 
     glTranslatef(0.0,0.0, -5)
 
-    rx, ry = (0,0)
-    tx, ty = (0,0)
+    rx, ry = (0, 0)
+    tx, ty = (0, 0)
     zpos = 5
     rotate = move = False
 
@@ -112,8 +84,8 @@ def main():
             elif event.type == MOUSEMOTION:
                 i, j = event.rel
                 if rotate:
-                    rx += i
-                    ry += j
+                    rx += j
+                    ry += i
                 if move:
                     tx += i
                     ty -= j
@@ -158,8 +130,21 @@ def main():
 
         # RENDER OBJECT
         glTranslate(tx/20., ty/20., - zpos)
-        glRotate(ry, 1, 0, 0)
-        glRotate(rx, 0, 1, 0)
+
+        # glRotate(rx, 0, 1, 0)
+        # glRotate(ry, 1, 0, 0)
+
+        # Rotate the vertices
+        rotation_matrix = rotate_x(rx)
+        obj.vertices = rotate_vertices(obj.vertices, rotation_matrix)
+
+        # Rotate the vertices
+        rotation_matrix = rotate_y(ry)
+        obj.vertices = rotate_vertices(obj.vertices, rotation_matrix)
+
+        rx = ry = 0
+        
+        obj.update()
         glCallList(obj.gl_list)
 
         glLoadIdentity()
