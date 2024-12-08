@@ -1,11 +1,9 @@
 ## Gimbal Lock
 
-I used ChatGPT to generate the rotation matrix using Euler Angle.
+> A ChatGPT generated project.
 
-Somehow, gimbal lock did not appear. Cheers! ChatGPT....
+Although the rotation matrix is computed using the Euler Angle, ChatGPT did not use the notorious OpenGL `glRoate` function, thus gimbal lock was circumvented. 
 
-Please tell me if you can reproduce Gimbal Lock using this code.
-
-> Update: It's because ChatGPT did not use the glRoate function
+Cheers! ChatGPT....
 
 ![](demo.gif)
